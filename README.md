@@ -2,6 +2,8 @@
 
 > Enhanced a bit Jaakko Vuori's existing work - handling mqtt client differently and not using callback as I wasn't comfortable of mass opening and closing mqtt connections constantly.
 >
+> The data is sent to SmartThings, using [Todd Austin's](https://github.com/toddaustin07) drivers [MQTTDevices](https://github.com/toddaustin07/MQTTDevices) and [MQTT-Discovery](https://github.com/toddaustin07/MQTT-Discovery), which is why humidity has separate handling with (mostly) hardcoded topic
+>
 > -Mira
 
 Publishes [RuuviTag](https://ruuvi.com/) events to [MQTT](https://mqtt.org/) broker. Designed to run on [Raspberry Pi](https://www.raspberrypi.org/) devices having [Bluetooth LE](https://en.wikipedia.org/wiki/Bluetooth_Low_Energy) capabilities, for example [Raspberry Pi Zero W](https://www.raspberrypi.org/products/raspberry-pi-zero/).
