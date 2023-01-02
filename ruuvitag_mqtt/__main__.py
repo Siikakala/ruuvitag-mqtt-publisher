@@ -2,6 +2,7 @@ import argparse
 from pathlib import Path
 import json
 import logging
+import signal
 
 from paho.mqtt import client as mqtt
 from paho.mqtt.properties import Properties, PacketTypes
@@ -13,23 +14,33 @@ logger = logging.getLogger(__name__)
 
 mqtt_client = mqtt.Client("RuuviTag")
 
+processflag = True
 
-def on_ruuvi_event(ruuvi_event):
-    mac_address, data = ruuvi_event
+def exit_handler(signum, frame):
+    logger.info("SIGINT detected, disconnecting")
+    processflag = False
+    mqtt_client.disconnect()
+
+def process_ruuvi_data(mqtt_client, mac_address, data):
     configured_ruuvitags = config.get("ruuvitags", {})
     location = configured_ruuvitags.get(mac_address, {}).get("name", mac_address)
     topic_prefix = config.get("topic_prefix", "")
-    mqtt_client.reconnect()
     for key, value in data.items():
         fields = configured_ruuvitags.get(mac_address, {}).get("fields")
         retain = configured_ruuvitags.get(mac_address, {}).get("retain", False)
         if fields is None or key in fields:
-            mqtt_client.publish(
-                f"{topic_prefix}{location}/{key}",
-                value,
-                retain=retain,
-            )
-    mqtt_client.disconnect()
+            if key == "humidity":
+                mqtt_client.publish(
+                    f"smartthings/moisture/rpi/{location}/state",
+                    value,
+                    retain=retain,
+                )
+            else:
+                mqtt_client.publish(
+                    f"{topic_prefix}{location}/{key}",
+                    value,
+                    retain=retain,
+                )
 
 
 def start_publishing(config_file_path: Path):
@@ -53,14 +64,21 @@ def start_publishing(config_file_path: Path):
         host=config.get("broker", {}).get("host", "localhost"),
         port=config.get("broker", {}).get("port", 1883),
     )
-    mqtt_client.disconnect()
 
-    RuuviTagSensor.get_datas(on_ruuvi_event)
+    while (True):
+        if processflag:
+            if not mqtt_client.is_connected:
+                mqtt_client.reconnect()
+            data = RuuviTagSensor.get_data_for_sensors()
+            for key,value in data.items():
+                process_ruuvi_data(mqtt_client, key, value)
 
 
 if __name__ == "__main__":
     argument_parser = argparse.ArgumentParser()
     argument_parser.add_argument("-c", dest="config_file")
     args = argument_parser.parse_args()
+
+    signal.signal(signal.SIGINT, exit_handler)
 
     start_publishing(args.config_file)

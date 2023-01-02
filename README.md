@@ -1,5 +1,7 @@
 # RuuviTag MQTT Publisher
 
+> Enhanced a bit Jaakko Vuori's existing work - handling mqtt client differently and not using callback as I wasn't comfortable of mass opening and closing mqtt connections constantly.
+
 Publishes [RuuviTag](https://ruuvi.com/) events to [MQTT](https://mqtt.org/) broker. Designed to run on [Raspberry Pi](https://www.raspberrypi.org/) devices having [Bluetooth LE](https://en.wikipedia.org/wiki/Bluetooth_Low_Energy) capabilities, for example [Raspberry Pi Zero W](https://www.raspberrypi.org/products/raspberry-pi-zero/).
 
 # Installation
@@ -11,7 +13,7 @@ https://github.com/ttu/ruuvitag-sensor
 
 Then clone the repo and run installation procedure:
 
-    git clone https://github.com/jvuori/ruuvitag-mqtt-publisher.git
+    git clone https://github.com/Siikakala/ruuvitag-mqtt-publisher.git
 
     cd ruuvitag-mqtt-publisher
 
