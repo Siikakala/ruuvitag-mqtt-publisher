@@ -3,6 +3,7 @@ from pathlib import Path
 import json
 import logging
 import signal
+import time
 
 from paho.mqtt import client as mqtt
 from paho.mqtt.properties import Properties, PacketTypes
@@ -17,9 +18,11 @@ mqtt_client = mqtt.Client("RuuviTag")
 processflag = True
 
 def exit_handler(signum, frame):
-    logger.info("SIGINT detected, disconnecting")
+    logger.info("SIGINT %s detected, disconnecting", signum)
     processflag = False
     mqtt_client.disconnect()
+    time.sleep(6) # 6 seconds as ruuvi data gathering is ratelimited to once per 5s in main loop
+    exit
 
 def process_ruuvi_data(mqtt_client, mac_address, data):
     configured_ruuvitags = config.get("ruuvitags", {})
@@ -72,6 +75,8 @@ def start_publishing(config_file_path: Path):
             data = RuuviTagSensor.get_data_for_sensors()
             for key,value in data.items():
                 process_ruuvi_data(mqtt_client, key, value)
+        else:
+            break
 
 
 if __name__ == "__main__":
