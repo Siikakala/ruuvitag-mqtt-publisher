@@ -35,7 +35,7 @@ def process_ruuvi_data(mqtt_client, mac_address, data):
             if key == "humidity":
                 mqtt_client.publish(
                     f"smartthings/moisture/rpi/{location}/state",
-                    value.replace(".",","),
+                    str(value).replace(".", ","),
                     retain=retain,
                 )
             else:
