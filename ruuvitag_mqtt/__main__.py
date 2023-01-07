@@ -21,7 +21,6 @@ def exit_handler(signum, frame):
     logger.info("SIGINT %s detected, disconnecting", signum)
     processflag = False
     mqtt_client.disconnect()
-    time.sleep(6) # 6 seconds as ruuvi data gathering is ratelimited to once per 5s in main loop
     exit
 
 def process_ruuvi_data(mqtt_client, mac_address, data):
@@ -32,18 +31,11 @@ def process_ruuvi_data(mqtt_client, mac_address, data):
         fields = configured_ruuvitags.get(mac_address, {}).get("fields")
         retain = configured_ruuvitags.get(mac_address, {}).get("retain", False)
         if fields is None or key in fields:
-            if key == "humidity":
-                mqtt_client.publish(
-                    f"smartthings/moisture/rpi/{location}/state",
-                    round(value, 1),
-                    retain=retain,
-                )
-            else:
-                mqtt_client.publish(
-                    f"{topic_prefix}{location}/{key}",
-                    value,
-                    retain=retain,
-                )
+            mqtt_client.publish(
+                f"{topic_prefix}{location}/{key}",
+                value,
+                retain=retain,
+            )
 
 
 def start_publishing(config_file_path: Path):
